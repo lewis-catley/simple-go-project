@@ -1,0 +1,43 @@
+on:
+  push
+
+env:
+  GOPRIVATE: "github.com/lewis-catley"
+  GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+jobs:
+  linter:
+    name: Lint Code Base
+    # Set the agent to run on
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        with:
+          fetch-depth: 0
+
+      - name: Configure private github access
+        run: echo "machine github.com login GH password $GH_ACCESS_TOKEN" > ~/.netrc
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.20"
+
+      - name: Pull dependencies
+        run: 'go get ./...'
+
+      - name: Lint Code Base
+        uses: lewis-catley/super-linter/slim@f25a329e2f02ef61f80a5c8b42560cb7f7ac5781
+        env:
+          DEFAULT_BRANCH: main
+          FILTER_REGEX_EXCLUDE: \.md$
+          GO_PRIVATE_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          LINTER_RULES_PATH: .github/linters
+          LOG_LEVEL: VERBOSE
+          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_RUBY: false
+          VALIDATE_EDITORCONFIG: false
+          VALIDATE_JSCPD: false
+
